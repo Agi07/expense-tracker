@@ -226,3 +226,16 @@ select:focus,
     transition: none;
   }
 }
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+#export-btn {
+  margin-top: 1rem;
+}
+
+#month-filter {
+  margin-bottom: 0.5rem;
+}

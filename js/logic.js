@@ -9,6 +9,9 @@ const CATEGORIES = [
   "Entertainment", "Health", "Other",
 ];
 
+const MONTH_NAMES = ["January", "February", "March", "April", "May", "June", "July",
+                     "August", "September", "October", "November", "December"];
+
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
                 "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
@@ -133,10 +136,66 @@ function parseStoredExpenses(text) {
   }
 }
 
+/** "2026-11-20" -> "2026-11" */
+function monthOf(isoDate) {
+  return isoDate.slice(0, 7);
+}
+
+/** "2026-11" -> "November 2026" */
+function formatMonth(yearMonth) {
+  const [year, month] = yearMonth.split("-");
+  return `${MONTH_NAMES[Number(month) - 1]} ${year}`;
+}
+
+/** Every month that has at least one expense, newest first. */
+function availableMonths(expenses) {
+  return [...new Set(expenses.map((expense) => monthOf(expense.date)))]
+    .sort()
+    .reverse();
+}
+
+/** Keep only the expenses in one month. The value "all" keeps everything. */
+function filterByMonth(expenses, month) {
+  if (month === "all") return expenses;
+  return expenses.filter((expense) => monthOf(expense.date) === month);
+}
+
+/**
+ * Make one CSV cell safe.
+ * Spreadsheets run text starting with = + - @ as a formula (CSV injection),
+ * so those get a leading apostrophe. Cells with commas, quotes or line breaks
+ * are wrapped in quotes, with any quotes inside doubled.
+ */
+function csvCell(value) {
+  let text = String(value);
+  if (/^[=+\-@\t\r]/.test(text)) {
+    text = "'" + text;
+  }
+  if (/[",\r\n]/.test(text)) {
+    text = '"' + text.replace(/"/g, '""') + '"';
+  }
+  return text;
+}
+
+/** Turn expenses into CSV text (newest first). */
+function toCsv(expenses) {
+  const rows = [["Date", "Description", "Category", "Amount (R)"]];
+  for (const expense of sortNewestFirst(expenses)) {
+    rows.push([
+      expense.date,
+      expense.description,
+      expense.category,
+      (expense.amountCents / 100).toFixed(2),
+    ]);
+  }
+  return rows.map((row) => row.map(csvCell).join(",")).join("\r\n") + "\r\n";
+}
+
 if (typeof module !== "undefined") {
   module.exports = {
     validateExpense, toCents, formatRand, todayString, formatDate, totalCents,
     sortNewestFirst, categoryTotals, isValidExpense, parseStoredExpenses,
+    monthOf, formatMonth, availableMonths, filterByMonth, csvCell, toCsv,
     MAX_AMOUNT, CATEGORIES,
   };
 }

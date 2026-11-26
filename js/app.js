@@ -8,6 +8,8 @@ const list = document.getElementById("expense-list");
 const emptyMessage = document.getElementById("empty-message");
 const totalBox = document.getElementById("total");
 const categoryList = document.getElementById("category-totals");
+const monthFilter = document.getElementById("month-filter");
+const exportButton = document.getElementById("export-btn");
 
 const fields = {
   description: document.getElementById("description"),
@@ -41,12 +43,39 @@ function saveExpenses() {
 }
 
 let expenses = loadExpenses();
+let selectedMonth = "all"; // "all" or a month like "2026-11"
 
-// ---------- Showing the list ----------
+function visibleExpenses() {
+  return filterByMonth(expenses, selectedMonth);
+}
 
-function renderCategories() {
+// ---------- Showing everything ----------
+
+function renderMonthOptions() {
+  const months = availableMonths(expenses);
+  if (selectedMonth !== "all" && !months.includes(selectedMonth)) {
+    selectedMonth = "all"; // that month has no expenses left
+  }
+
+  monthFilter.replaceChildren();
+  const all = document.createElement("option");
+  all.value = "all";
+  all.textContent = "All months";
+  monthFilter.append(all);
+
+  for (const month of months) {
+    const option = document.createElement("option");
+    option.value = month;
+    option.textContent = formatMonth(month);
+    monthFilter.append(option);
+  }
+  monthFilter.value = selectedMonth;
+  monthFilter.disabled = months.length === 0;
+}
+
+function renderCategories(shown) {
   categoryList.replaceChildren();
-  const rows = categoryTotals(expenses);
+  const rows = categoryTotals(shown);
 
   if (rows.length === 0) {
     const hint = document.createElement("li");
@@ -84,12 +113,16 @@ function renderCategories() {
 }
 
 function render() {
+  renderMonthOptions();
+  const shown = visibleExpenses();
+
   list.replaceChildren();
   emptyMessage.hidden = expenses.length > 0;
-  totalBox.textContent = formatRand(totalCents(expenses));
-    renderCategories();
+  totalBox.textContent = formatRand(totalCents(shown));
+  exportButton.disabled = shown.length === 0;
+  renderCategories(shown);
 
-  for (const expense of sortNewestFirst(expenses)) {
+  for (const expense of sortNewestFirst(shown)) {
     const item = document.createElement("li");
     item.className = "expense";
 
@@ -129,6 +162,34 @@ function removeExpense(id) {
   render();
   status.textContent = "Expense deleted.";
 }
+
+// ---------- Month filter and CSV export ----------
+
+monthFilter.addEventListener("change", () => {
+  selectedMonth = monthFilter.value;
+  render();
+});
+
+function exportCsv() {
+  const shown = visibleExpenses();
+  if (shown.length === 0) return;
+
+  // The leading \uFEFF lets Excel read accented characters correctly.
+  const blob = new Blob(["\uFEFF", toCsv(shown)], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `expenses-${selectedMonth}.csv`;
+  document.body.append(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+
+  status.textContent = `Exported ${shown.length} expense${shown.length === 1 ? "" : "s"} to CSV.`;
+}
+
+exportButton.addEventListener("click", exportCsv);
 
 // ---------- The form ----------
 

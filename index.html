@@ -48,6 +48,8 @@
 
     <section class="panel" aria-labelledby="summary-title">
       <h2 id="summary-title">Summary</h2>
+      <label for="month-filter">Show</label>
+      <select id="month-filter"></select>
       <p class="total">Total spent <strong id="total">R0.00</strong></p>
       <ul id="category-totals" class="category-totals"></ul>
     </section>
@@ -56,6 +58,7 @@
       <h2 id="list-title">Expenses</h2>
       <ul id="expense-list" class="expense-list"></ul>
       <p id="empty-message" class="empty">No expenses yet. Add your first one above.</p>
+      <button type="button" class="btn" id="export-btn">Export to CSV</button>
     </section>
 
   </main>
