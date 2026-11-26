@@ -1,0 +1,10 @@
+{
+  "name": "expense-tracker",
+  "version": "1.0.0",
+  "description": "A responsive expense tracker built with HTML, CSS and JavaScript.",
+  "private": true,
+  "scripts": {
+    "test": "node --test"
+  },
+  "license": "MIT"
+}
