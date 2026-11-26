@@ -189,3 +189,40 @@ select:focus,
   outline: 3px solid var(--olive);
   outline-offset: 2px;
 }
+
+.cat {
+  margin-top: 0.9rem;
+}
+
+.cat__head {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.cat__head span:last-child {
+  color: var(--olive);
+}
+
+.cat__track {
+  height: 0.7rem;
+  margin-top: 0.3rem;
+  overflow: hidden;
+  background: var(--sand);
+  border-radius: 99px;
+}
+
+.cat__fill {
+  height: 100%;
+  background: var(--olive);
+  border-radius: 99px;
+  transition: width 0.4s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cat__fill {
+    transition: none;
+  }
+}

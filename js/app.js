@@ -7,6 +7,7 @@ const status = document.getElementById("form-status");
 const list = document.getElementById("expense-list");
 const emptyMessage = document.getElementById("empty-message");
 const totalBox = document.getElementById("total");
+const categoryList = document.getElementById("category-totals");
 
 const fields = {
   description: document.getElementById("description"),
@@ -43,10 +44,50 @@ let expenses = loadExpenses();
 
 // ---------- Showing the list ----------
 
+function renderCategories() {
+  categoryList.replaceChildren();
+  const rows = categoryTotals(expenses);
+
+  if (rows.length === 0) {
+    const hint = document.createElement("li");
+    hint.className = "empty";
+    hint.textContent = "Add an expense to see where your money goes.";
+    categoryList.append(hint);
+    return;
+  }
+
+  for (const row of rows) {
+    const item = document.createElement("li");
+    item.className = "cat";
+
+    const head = document.createElement("div");
+    head.className = "cat__head";
+    const name = document.createElement("span");
+    name.textContent = row.category;
+    const value = document.createElement("span");
+    const share = row.percent === 0 ? "<1" : row.percent;
+    value.textContent = `${formatRand(row.cents)} (${share}%)`;
+    head.append(name, value);
+
+    // The bar is decorative: the numbers above already say the same thing.
+    const track = document.createElement("div");
+    track.className = "cat__track";
+    track.setAttribute("aria-hidden", "true");
+    const fill = document.createElement("div");
+    fill.className = "cat__fill";
+    fill.style.width = `${Math.max(row.percent, 2)}%`;
+    track.append(fill);
+
+    item.append(head, track);
+    categoryList.append(item);
+  }
+}
+
 function render() {
   list.replaceChildren();
   emptyMessage.hidden = expenses.length > 0;
   totalBox.textContent = formatRand(totalCents(expenses));
+    renderCategories();
 
   for (const expense of sortNewestFirst(expenses)) {
     const item = document.createElement("li");

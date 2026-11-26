@@ -75,6 +75,23 @@ function totalCents(expenses) {
   return expenses.reduce((sum, expense) => sum + expense.amountCents, 0);
 }
 
+/** Spending per category, biggest first. Categories with no spending are left out. */
+function categoryTotals(expenses) {
+  const total = totalCents(expenses);
+  const sums = {};
+  for (const expense of expenses) {
+    sums[expense.category] = (sums[expense.category] || 0) + expense.amountCents;
+  }
+  return CATEGORIES
+    .filter((category) => sums[category])
+    .map((category) => ({
+      category,
+      cents: sums[category],
+      percent: total === 0 ? 0 : Math.round((sums[category] / total) * 100),
+    }))
+    .sort((a, b) => b.cents - a.cents || CATEGORIES.indexOf(a.category) - CATEGORIES.indexOf(b.category));
+}
+
 /** Newest date first. For the same date, the expense added last comes first. */
 function sortNewestFirst(expenses) {
   return expenses
@@ -119,6 +136,7 @@ function parseStoredExpenses(text) {
 if (typeof module !== "undefined") {
   module.exports = {
     validateExpense, toCents, formatRand, todayString, formatDate, totalCents,
-    sortNewestFirst, isValidExpense, parseStoredExpenses, MAX_AMOUNT, CATEGORIES,
+    sortNewestFirst, categoryTotals, isValidExpense, parseStoredExpenses,
+    MAX_AMOUNT, CATEGORIES,
   };
 }
